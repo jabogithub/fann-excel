@@ -126,11 +126,13 @@ fannTrainOnData(const std::string& netFile	// is the ANN file
 	const int epochsBetweenReports = (int)maxEpochs/5;
 
 	struct fann* ann = fann_create_from_file(netFile.c_str());
-	// train_on_file
+	// Create train_data struct
+	unsigned int nOfRows = inData.rows();
+	unsigned int nOfInputs = inData.columns();
+	unsigned int nOfOutputs= outData.columns();
 
+	//! TODO: train directly using fann_train_epoch() which returns MSE
 	double mse = fann_get_MSE(ann);
-
-	fann_save(ann, netFile.c_str());
 	fann_destroy(ann);
 	
 	return mse;
