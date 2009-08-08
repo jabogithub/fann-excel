@@ -1,24 +1,28 @@
 #pragma once
 
 #include <xlw/MyContainers.h>
+#include <xlw/DoubleOrNothing.h>
 
 //<xlw:libraryname=FANNExcel
 
 std::string // Get library ID.
-nnInqLibraryVersion();
+fannInqLibraryVersion();
 
-bool // create training file for FANN network
-nnSaveFannInputTrainingFile(const NEMatrix& inData // is input data matrix. Variables are in columns. Each training set in rows
+bool	// create training file for FANN network
+fannCreateTrainingFile(const NEMatrix& inData // is input data matrix. Variables are in columns. Training sets in rows
 					,  const NEMatrix& outData // is output data matrix. Variables in columns. Training sets in rows
-					,  std::string fileName // is name of the output file
+					,  std::string trainFileName // is name of the training file to be created
 					);
 
-bool	// train network on input file
-nnTrainOnFile(const std::string dataFile	// is name of the input data file
-			  ,	int nOfInputNeurons		// is number of neurons in the input layer
-			  , int nOfOutputNeurons	// is number of neuron in the output layer
-			  , int nOfLayers			// is number of layers
-			  , int nOfHiddenNeurons	// is number of eurons in each hidden layer
-			  , int maxEpochs			// maximum number of iterations
-			  );
-			
+bool	// create a standard fully connected backpropagation neural network and save it into file. 
+fannCreateStandardArray(		int nOfLayers			// is number of layers
+				    ,	const MyArray&	neurons	// vector with number of neurons in each layer (including input, hiddenand output layers)
+					,	std::string netFileName	// is the name of the created ANN file
+					);
+
+bool	// train network on train file
+fannTrainOnFile(const std::string& netFile // is the ANN file
+				,	const std::string& trainFile	// is name of the input training data file
+				,	int maxEpochs					// maximum number of epochs,
+				,	DoubleOrNothing desiredError	// desired error (MSE)
+				);

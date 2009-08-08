@@ -32,16 +32,16 @@ xlAutoClose();
 namespace
 {
 XLRegistration::Arg
-nnInqLibraryVersionArgs[]=
+fannInqLibraryVersionArgs[]=
 {
  { "","" } 
 };
   XLRegistration::XLFunctionRegistrationHelper
-registernnInqLibraryVersion("xlnnInqLibraryVersion",
-"nnInqLibraryVersion",
+registerfannInqLibraryVersion("xlfannInqLibraryVersion",
+"fannInqLibraryVersion",
 " Get library ID. ",
 LibraryName,
-nnInqLibraryVersionArgs,
+fannInqLibraryVersionArgs,
 ""
 );
 }
@@ -51,7 +51,7 @@ nnInqLibraryVersionArgs,
 extern "C"
 {
 LPXLOPER EXCEL_EXPORT
-xlnnInqLibraryVersion(
+xlfannInqLibraryVersion(
 )
 {
 EXCEL_BEGIN;
@@ -60,7 +60,7 @@ EXCEL_BEGIN;
 		return XlfOper(true);
 
 std::string result(
-	nnInqLibraryVersion());
+	fannInqLibraryVersion());
 return XlfOper(result);
 EXCEL_END
 }
@@ -73,18 +73,18 @@ EXCEL_END
 namespace
 {
 XLRegistration::Arg
-nnSaveFannInputTrainingFileArgs[]=
+fannCreateTrainingFileArgs[]=
 {
-{ "inData"," is input data matrix. Variables are in columns. Each training set in rows "},
+{ "inData"," is input data matrix. Variables are in columns. Training sets in rows "},
 { "outData"," is output data matrix. Variables in columns. Training sets in rows "},
-{ "fileName"," is name of the output file "}
+{ "trainFileName"," is name of the training file to be created "}
 };
   XLRegistration::XLFunctionRegistrationHelper
-registernnSaveFannInputTrainingFile("xlnnSaveFannInputTrainingFile",
-"nnSaveFannInputTrainingFile",
+registerfannCreateTrainingFile("xlfannCreateTrainingFile",
+"fannCreateTrainingFile",
 " create training file for FANN network ",
 LibraryName,
-nnSaveFannInputTrainingFileArgs,
+fannCreateTrainingFileArgs,
 "KKR"
 );
 }
@@ -94,10 +94,10 @@ nnSaveFannInputTrainingFileArgs,
 extern "C"
 {
 LPXLOPER EXCEL_EXPORT
-xlnnSaveFannInputTrainingFile(
+xlfannCreateTrainingFile(
 LPXLARRAY inDataa,
 LPXLARRAY outDataa,
-LPXLOPER fileNamea)
+LPXLOPER trainFileNamea)
 {
 EXCEL_BEGIN;
 
@@ -110,16 +110,16 @@ NEMatrix inData(
 NEMatrix outData(
 	GetMatrix(outDataa));
 
-XlfOper fileNameb(
-	(fileNamea));
-std::string fileName(
-	fileNameb.AsString("fileName"));
+XlfOper trainFileNameb(
+	(trainFileNamea));
+std::string trainFileName(
+	trainFileNameb.AsString("trainFileName"));
 
 bool result(
-	nnSaveFannInputTrainingFile(
+	fannCreateTrainingFile(
 		inData,
 		outData,
-		fileName)
+		trainFileName)
 	);
 return XlfOper(result);
 EXCEL_END
@@ -133,22 +133,19 @@ EXCEL_END
 namespace
 {
 XLRegistration::Arg
-nnTrainOnFileArgs[]=
+fannCreateStandardArrayArgs[]=
 {
-{ "dataFile"," is name of the input data file "},
-{ "nOfInputNeurons"," is number of neurons in the input layer "},
-{ "nOfOutputNeurons"," is number of neuron in the output layer "},
 { "nOfLayers"," is number of layers "},
-{ "nOfHiddenNeurons"," is number of eurons in each hidden layer "},
-{ "maxEpochs"," maximum number of iterations "}
+{ "neurons"," vector with number of neurons in each layer (including input, hiddenand output layers) "},
+{ "netFileName"," is the name of the created ANN file "}
 };
   XLRegistration::XLFunctionRegistrationHelper
-registernnTrainOnFile("xlnnTrainOnFile",
-"nnTrainOnFile",
-" train network on input file ",
+registerfannCreateStandardArray("xlfannCreateStandardArray",
+"fannCreateStandardArray",
+" create a standard fully connected backpropagation neural network and save it into file. ",
 LibraryName,
-nnTrainOnFileArgs,
-"RBBBBB"
+fannCreateStandardArrayArgs,
+"BRR"
 );
 }
 
@@ -157,47 +154,106 @@ nnTrainOnFileArgs,
 extern "C"
 {
 LPXLOPER EXCEL_EXPORT
-xlnnTrainOnFile(
-LPXLOPER dataFilea,
-double nOfInputNeuronsa,
-double nOfOutputNeuronsa,
+xlfannCreateStandardArray(
 double nOfLayersa,
-double nOfHiddenNeuronsa,
-double maxEpochsa)
+LPXLOPER neuronsa,
+LPXLOPER netFileNamea)
 {
 EXCEL_BEGIN;
 
 	if (XlfExcel::Instance().IsCalledByFuncWiz())
 		return XlfOper(true);
 
-XlfOper dataFileb(
-	(dataFilea));
-std::string dataFile(
-	dataFileb.AsString("dataFile"));
-
-int nOfInputNeurons(
-	static_cast<int>(nOfInputNeuronsa));
-
-int nOfOutputNeurons(
-	static_cast<int>(nOfOutputNeuronsa));
-
 int nOfLayers(
 	static_cast<int>(nOfLayersa));
 
-int nOfHiddenNeurons(
-	static_cast<int>(nOfHiddenNeuronsa));
+XlfOper neuronsb(
+	(neuronsa));
+MyArray neurons(
+	neuronsb.AsArray("neurons"));
+
+XlfOper netFileNameb(
+	(netFileNamea));
+std::string netFileName(
+	netFileNameb.AsString("netFileName"));
+
+bool result(
+	fannCreateStandardArray(
+		nOfLayers,
+		neurons,
+		netFileName)
+	);
+return XlfOper(result);
+EXCEL_END
+}
+}
+
+
+
+//////////////////////////
+
+namespace
+{
+XLRegistration::Arg
+fannTrainOnFileArgs[]=
+{
+{ "netFile"," is the ANN file "},
+{ "trainFile"," is name of the input training data file "},
+{ "maxEpochs"," maximum number of epochs, "},
+{ "desiredError"," desired error (MSE) "}
+};
+  XLRegistration::XLFunctionRegistrationHelper
+registerfannTrainOnFile("xlfannTrainOnFile",
+"fannTrainOnFile",
+" train network on train file ",
+LibraryName,
+fannTrainOnFileArgs,
+"RRBP"
+);
+}
+
+
+
+extern "C"
+{
+LPXLOPER EXCEL_EXPORT
+xlfannTrainOnFile(
+LPXLOPER netFilea,
+LPXLOPER trainFilea,
+double maxEpochsa,
+LPXLOPER desiredErrora)
+{
+EXCEL_BEGIN;
+
+	if (XlfExcel::Instance().IsCalledByFuncWiz())
+		return XlfOper(true);
+
+XlfOper netFileb(
+	(netFilea));
+std::string netFile(
+	netFileb.AsString("netFile"));
+
+XlfOper trainFileb(
+	(trainFilea));
+std::string trainFile(
+	trainFileb.AsString("trainFile"));
 
 int maxEpochs(
 	static_cast<int>(maxEpochsa));
 
+XlfOper desiredErrorb(
+	(desiredErrora));
+CellMatrix desiredErrorc(
+	desiredErrorb.AsCellMatrix("desiredErrorc"));
+DoubleOrNothing desiredError(
+	DoubleOrNothing(desiredErrorc,"desiredError"));
+
 bool result(
-	nnTrainOnFile(
-		dataFile,
-		nOfInputNeurons,
-		nOfOutputNeurons,
-		nOfLayers,
-		nOfHiddenNeurons,
-		maxEpochs)
+	fannTrainOnFile(
+		netFile,
+		trainFile,
+		maxEpochs,
+		desiredError)
 	);
 return XlfOper(result);
 EXCEL_END

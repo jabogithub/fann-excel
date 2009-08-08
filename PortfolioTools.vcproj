@@ -24,7 +24,7 @@
 			>
 			<Tool
 				Name="VCPreBuildEventTool"
-				CommandLine="$(SolutionDir)$(ConfigurationName)\InterfaceGenerator.exe Interface.h xlwInterface.cpp&quot;"
+				CommandLine="$(SolutionDir)$(ConfigurationName)\InterfaceGenerator.exe Interface.h xlwInterface.cpp"
 			/>
 			<Tool
 				Name="VCCustomBuildTool"
@@ -105,7 +105,7 @@
 			<Tool
 				Name="VCPreBuildEventTool"
 				Description="Generate instrumented cpp file"
-				CommandLine=".\release\InterfaceGenerator.exe Interface.h xlwInterface.cpp&quot;"
+				CommandLine=".\release\InterfaceGenerator.exe Interface.h xlwInterface.cpp"
 			/>
 			<Tool
 				Name="VCCustomBuildTool"
