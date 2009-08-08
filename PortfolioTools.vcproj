@@ -24,7 +24,7 @@
 			>
 			<Tool
 				Name="VCPreBuildEventTool"
-				CommandLine=".\release\InterfaceGenerator.exe Interface.h xlwInterface.cpp&quot;"
+				CommandLine="$(SolutionDir)$(ConfigurationName)\InterfaceGenerator.exe Interface.h xlwInterface.cpp&quot;"
 			/>
 			<Tool
 				Name="VCCustomBuildTool"
@@ -41,7 +41,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="..\XLW2p1\.;.\fann-2.1.0\src\include"
+				AdditionalIncludeDirectories=".\XLW2p1\.;.\fann-2.1.0\src\include"
 				PreprocessorDefinitions="WIN32;_DEBUG;_WINDOWS;_USRDLL;FANN_DLL_EXPORTS;"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
@@ -121,7 +121,7 @@
 			/>
 			<Tool
 				Name="VCCLCompilerTool"
-				AdditionalIncludeDirectories="..\XLW2p1\.;.\fann-2.1.0\src\include"
+				AdditionalIncludeDirectories=".\XLW2p1\.;.\fann-2.1.0\src\include"
 				PreprocessorDefinitions="NDEBUG;FANN_DLL_EXPORTS;USE_WINDOWS_H"
 				RuntimeLibrary="0"
 				UsePrecompiledHeader="0"

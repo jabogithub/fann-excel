@@ -14,7 +14,7 @@
 #include <xlw/xlarray.h>
 
 namespace {
-const char* LibraryName = "NeuralNetworkTools";
+const char* LibraryName = "FANNExcel";
 };
 
 // dummy function to force linkage
