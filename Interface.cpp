@@ -63,12 +63,14 @@ fannCreateStandardArray(int nOfLayers			// is number of layers
 		layers[i] = (unsigned int)neurons[i];
 
 	struct fann* ann = fann_create_standard_array(nOfLayers, layers);
-	
+    fann_set_activation_function_hidden(ann, FANN_SIGMOID_SYMMETRIC);
+    fann_set_activation_function_output(ann, FANN_SIGMOID_SYMMETRIC);
+
 	fann_save(ann, netFileName.c_str());
 	return true;
 }
 
-bool	// train network on input file
+double	// train network on input file
 fannTrainOnFile(const std::string& netFile			// is the ANN file
 				,	const std::string& trainFile	// is name of the input training data file
 				,	int maxEpochs					// maximum number of epochs,
@@ -80,13 +82,34 @@ fannTrainOnFile(const std::string& netFile			// is the ANN file
 
 	struct fann* ann = fann_create_from_file(netFile.c_str());
 
-    fann_set_activation_function_hidden(ann, FANN_SIGMOID_SYMMETRIC);
-    fann_set_activation_function_output(ann, FANN_SIGMOID_SYMMETRIC);
-
 	fann_train_on_file(ann, trainFile.c_str(), maxEpochs, epochsBetweenReports, dError);
+
+	double mse = fann_get_MSE(ann);
 
 	fann_save(ann, netFile.c_str());
 	fann_destroy(ann);
 	
-	return true;
+	return mse;
+}
+
+double
+fannTrainOnData(const std::string& netFile	// is the ANN file
+				,	const NEMatrix& inData	// is input data matrix. Variables are in columns. Training sets in rows
+				,	const NEMatrix& outData	// is output data matrix. Variables in columns. Training sets in rows
+				,	int maxEpochs					// is maximum number of epochs,
+				,	DoubleOrNothing desiredError	// is desired error (MSE)
+				)
+{
+	const float dError =(float) desiredError.GetValueOrDefault(0.001);
+	const int epochsBetweenReports = (int)maxEpochs/5;
+
+	struct fann* ann = fann_create_from_file(netFile.c_str());
+	// train_on_file
+
+	double mse = fann_get_MSE(ann);
+
+	fann_save(ann, netFile.c_str());
+	fann_destroy(ann);
+	
+	return mse;
 }

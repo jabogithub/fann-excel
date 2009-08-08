@@ -199,13 +199,13 @@ fannTrainOnFileArgs[]=
 {
 { "netFile"," is the ANN file "},
 { "trainFile"," is name of the input training data file "},
-{ "maxEpochs"," maximum number of epochs, "},
-{ "desiredError"," desired error (MSE) "}
+{ "maxEpochs"," is maximum number of epochs, "},
+{ "desiredError"," is desired error (MSE) "}
 };
   XLRegistration::XLFunctionRegistrationHelper
 registerfannTrainOnFile("xlfannTrainOnFile",
 "fannTrainOnFile",
-" train network on train file ",
+" train network on train file. Return MSE ",
 LibraryName,
 fannTrainOnFileArgs,
 "RRBP"
@@ -248,10 +248,86 @@ CellMatrix desiredErrorc(
 DoubleOrNothing desiredError(
 	DoubleOrNothing(desiredErrorc,"desiredError"));
 
-bool result(
+double result(
 	fannTrainOnFile(
 		netFile,
 		trainFile,
+		maxEpochs,
+		desiredError)
+	);
+return XlfOper(result);
+EXCEL_END
+}
+}
+
+
+
+//////////////////////////
+
+namespace
+{
+XLRegistration::Arg
+fannTrainOnDataArgs[]=
+{
+{ "netFile"," is the ANN file "},
+{ "inData"," is input data matrix. Variables are in columns. Training sets in rows "},
+{ "outData"," is output data matrix. Variables in columns. Training sets in rows "},
+{ "maxEpochs"," is maximum number of epochs, "},
+{ "desiredError"," is desired error (MSE) "}
+};
+  XLRegistration::XLFunctionRegistrationHelper
+registerfannTrainOnData("xlfannTrainOnData",
+"fannTrainOnData",
+"too lazy to comment this function ",
+LibraryName,
+fannTrainOnDataArgs,
+"RKKBP"
+);
+}
+
+
+
+extern "C"
+{
+LPXLOPER EXCEL_EXPORT
+xlfannTrainOnData(
+LPXLOPER netFilea,
+LPXLARRAY inDataa,
+LPXLARRAY outDataa,
+double maxEpochsa,
+LPXLOPER desiredErrora)
+{
+EXCEL_BEGIN;
+
+	if (XlfExcel::Instance().IsCalledByFuncWiz())
+		return XlfOper(true);
+
+XlfOper netFileb(
+	(netFilea));
+std::string netFile(
+	netFileb.AsString("netFile"));
+
+NEMatrix inData(
+	GetMatrix(inDataa));
+
+NEMatrix outData(
+	GetMatrix(outDataa));
+
+int maxEpochs(
+	static_cast<int>(maxEpochsa));
+
+XlfOper desiredErrorb(
+	(desiredErrora));
+CellMatrix desiredErrorc(
+	desiredErrorb.AsCellMatrix("desiredErrorc"));
+DoubleOrNothing desiredError(
+	DoubleOrNothing(desiredErrorc,"desiredError"));
+
+double result(
+	fannTrainOnData(
+		netFile,
+		inData,
+		outData,
 		maxEpochs,
 		desiredError)
 	);

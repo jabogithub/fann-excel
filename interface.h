@@ -9,8 +9,8 @@ std::string // Get library ID.
 fannInqLibraryVersion();
 
 bool	// create training file for FANN network
-fannCreateTrainingFile(const NEMatrix& inData // is input data matrix. Variables are in columns. Training sets in rows
-					,  const NEMatrix& outData // is output data matrix. Variables in columns. Training sets in rows
+fannCreateTrainingFile(const NEMatrix& inData	// is input data matrix. Variables are in columns. Training sets in rows
+					,  const NEMatrix& outData	// is output data matrix. Variables in columns. Training sets in rows
 					,  std::string trainFileName // is name of the training file to be created
 					);
 
@@ -20,9 +20,17 @@ fannCreateStandardArray(		int nOfLayers			// is number of layers
 					,	std::string netFileName	// is the name of the created ANN file
 					);
 
-bool	// train network on train file
+double	// train network on train file. Return MSE 
 fannTrainOnFile(const std::string& netFile // is the ANN file
 				,	const std::string& trainFile	// is name of the input training data file
-				,	int maxEpochs					// maximum number of epochs,
-				,	DoubleOrNothing desiredError	// desired error (MSE)
+				,	int maxEpochs					// is maximum number of epochs,
+				,	DoubleOrNothing desiredError	// is desired error (MSE)
+				);
+
+double
+fannTrainOnData(const std::string& netFile	// is the ANN file
+				,	const NEMatrix& inData	// is input data matrix. Variables are in columns. Training sets in rows
+				,	const NEMatrix& outData	// is output data matrix. Variables in columns. Training sets in rows
+				,	int maxEpochs					// is maximum number of epochs,
+				,	DoubleOrNothing desiredError	// is desired error (MSE)
 				);
