@@ -79,13 +79,35 @@ fannTrainOnFile(const std::string& netFile			// is the ANN file
 {
 	const float dError =(float) desiredError.GetValueOrDefault(0.001);
 	const int epochsBetweenReports = (int)maxEpochs/5;
-
+	
+	// Load the network form the file
 	struct fann* ann = fann_create_from_file(netFile.c_str());
 
-	fann_train_on_file(ann, trainFile.c_str(), maxEpochs, epochsBetweenReports, dError);
+	// Check consistency between thenetwork and the training file
+	std::ifstream in(trainFile.c_str());
+	int nOfRows, nOfInputs, nOfOutputs;
+	in >> nOfRows >> nOfInputs >> nOfOutputs;
+	in.close();
 
+	if (nOfInputs != fann_get_num_input(ann))
+	{
+		std::stringstream ss;
+		ss << "number of input neurons in the training file is" << nOfInputs << ", which differs from number of input neurons in the network " << fann_get_num_input(ann);
+		throw ss.str();
+	}
+
+	if (nOfOutputs != fann_get_num_output(ann))
+	{
+		std::stringstream ss;
+		ss << "number of output neurons in the training file is " << nOfOutputs << ", which differs from number of output neurons in the network " << fann_get_num_output(ann);
+		throw ss.str();
+	}
+
+	// Train the network
+	fann_train_on_file(ann, trainFile.c_str(), maxEpochs, epochsBetweenReports, dError);
 	double mse = fann_get_MSE(ann);
 
+	// Save the trained network to the ANN file
 	fann_save(ann, netFile.c_str());
 	fann_destroy(ann);
 	
