@@ -2,9 +2,12 @@
 
 #include <sstream>
 #include <fstream>
+#include <stdio.h>
 
 #include <fann.h>
 #include <xlw/xlw.h>
+
+static const char* logFileName = "FANN-excel.log";	// dirty: global logfile
 
 std::string
 fannInqLibraryVersion()
@@ -77,9 +80,6 @@ fannTrainOnFile(const std::string& netFile			// is the ANN file
 				,	DoubleOrNothing desiredError	// desired error (MSE)
 			  )
 {
-	const float dError =(float) desiredError.GetValueOrDefault(0.001);
-	const int epochsBetweenReports = (int)maxEpochs/5;
-	
 	// Load the network form the file
 	struct fann* ann = fann_create_from_file(netFile.c_str());
 
@@ -92,10 +92,9 @@ fannTrainOnFile(const std::string& netFile			// is the ANN file
 	if (nOfInputs != fann_get_num_input(ann))
 	{
 		std::stringstream ss;
-		ss << "number of input neurons in the training file is" << nOfInputs << ", which differs from number of input neurons in the network " << fann_get_num_input(ann);
+		ss << "number of input neurons in the training file is " << nOfInputs << ", which differs from number of input neurons in the network " << fann_get_num_input(ann);
 		throw ss.str();
 	}
-
 	if (nOfOutputs != fann_get_num_output(ann))
 	{
 		std::stringstream ss;
@@ -104,7 +103,11 @@ fannTrainOnFile(const std::string& netFile			// is the ANN file
 	}
 
 	// Train the network
-	fann_train_on_file(ann, trainFile.c_str(), maxEpochs, epochsBetweenReports, dError);
+	const float dError =(float) desiredError.GetValueOrDefault(0.001);
+	const int epochsBetweenReports = (int)maxEpochs/5;	
+	FILE* logFile = fopen(logFileName, "a");
+	fann_train_on_file(ann, trainFile.c_str(), maxEpochs, epochsBetweenReports, dError, logFile);
+	fclose(logFile);
 	double mse = fann_get_MSE(ann);
 
 	// Save the trained network to the ANN file
@@ -135,19 +138,41 @@ fannTrainOnData(const std::string& netFile	// is the ANN file
 {
 	// create ANN from file
 	struct fann* ann = fann_create_from_file(netFile.c_str());
-	// Create train_data struct
+	// Check input/output layer consistency with data
 	unsigned int nOfRows = inData.rows();
 	unsigned int nOfInputs = inData.columns();
 	unsigned int nOfOutputs= outData.columns();
+	if (nOfInputs != fann_get_num_input(ann))
+	{
+		std::stringstream ss;
+		ss << "number of input neurons in the training file is " << nOfInputs << ", which differs from number of input neurons in the network " << fann_get_num_input(ann);
+		throw ss.str();
+	}
 
+	if (nOfOutputs != fann_get_num_output(ann))
+	{
+		std::stringstream ss;
+		ss << "number of output neurons in the training file is " << nOfOutputs << ", which differs from number of output neurons in the network " << fann_get_num_output(ann);
+		throw ss.str();
+	}
+	if (inData.rows() != outData.rows())
+	{
+		std::stringstream ss;
+		ss << "number of inData rows " << inData.rows() << " differs from number of out-data rows " << outData.rows();
+		throw ss.str();
+	}
+
+	// Create train_data struct
 	inDataGlobal = inData;
 	outDataGlobal = outData;
 	struct fann_train_data* data = fann_create_train_from_callback(nOfRows, nOfInputs, nOfOutputs, cbTrainOnData);
 
 	// Train the network
+	FILE* logFile = fopen(logFileName, "a");
 	const float dError =(float) desiredError.GetValueOrDefault(0.001);
 	const int epochsBetweenReports = (int)maxEpochs/5;
-	fann_train_on_data(ann, data, maxEpochs, epochsBetweenReports, dError);	
+	fann_train_on_data(ann, data, maxEpochs, epochsBetweenReports, dError, logFile);	
+	fclose(logFile);
 	double mse = fann_get_MSE(ann);
 
 	// Save and destroy

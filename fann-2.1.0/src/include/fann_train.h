@@ -176,7 +176,8 @@ FANN_EXTERNAL void FANN_API fann_reset_MSE(struct fann *ann);
 FANN_EXTERNAL void FANN_API fann_train_on_data(struct fann *ann, struct fann_train_data *data,
 											   unsigned int max_epochs,
 											   unsigned int epochs_between_reports,
-											   float desired_error);
+											   float desired_error,
+											   FILE* logFile);
 
 /* Function: fann_train_on_file
    
@@ -190,7 +191,8 @@ FANN_EXTERNAL void FANN_API fann_train_on_data(struct fann *ann, struct fann_tra
 FANN_EXTERNAL void FANN_API fann_train_on_file(struct fann *ann, const char *filename,
 											   unsigned int max_epochs,
 											   unsigned int epochs_between_reports,
-											   float desired_error);
+											   float desired_error,
+											   FILE* logFile);
 
 /* Function: fann_train_epoch
    Train one epoch with a set of training data.
