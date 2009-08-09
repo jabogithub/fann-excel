@@ -210,3 +210,35 @@ fannTestOnData(const std::string& netFile	// is the network definition ANN file
 	fann_destroy(ann);
 	return mse;
 }
+
+NEMatrix	// run input through the neural network, returning an array of outputs, The variables are incolumns (equal to # of neurons inoutput layer), sets are in rows (equal to # of rows of the input data)
+fannRun(const std::string& netFile	// is the network definition ANN file
+		,	const NEMatrix& inData	// is input data matrix. Variables are in columns. Sets is in rows
+		)
+{
+	// create ANN from file
+	struct fann* ann = fann_create_from_file(netFile.c_str());
+	
+	// prepare varaibles
+	unsigned int nOfOutput = fann_get_num_output(ann);
+	unsigned int nOfRows = inData.rows();
+	unsigned int nOfInput = inData.columns();
+	NEMatrix outData(nOfRows, nOfOutput);
+	fann_type* input = new fann_type[nOfInput];
+
+	// run neural network fit
+	for (unsigned int i = 0; i < nOfRows; ++i)
+	{	
+		for (unsigned int j = 0; j < nOfInput; ++j)
+			input[j] = (fann_type)inData(i,j);
+
+		fann_type* output = fann_run(ann, input);
+		for (unsigned int j = 0; j < nOfOutput; ++j)
+			outData(i,j) = output[j];
+	}
+	// clean up
+	delete input;
+	fann_destroy(ann);
+
+	return outData;
+}

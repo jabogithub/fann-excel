@@ -40,3 +40,8 @@ fannTestOnData(const std::string& netFile	// is the network definition ANN file
 			   ,	const NEMatrix& inData	// is input data matrix. Variables are in columns. Training sets in rows
 			   ,	const NEMatrix& outData	// is output data matrix. Variables in columns. Training sets in rows
 				);
+
+NEMatrix	// run input through the neural network, returning an array of outputs, The variables are incolumns (equal to # of neurons inoutput layer), sets are in rows (equal to # of rows of the input data)
+fannRun(const std::string& netFile	// is the network definition ANN file
+		,	const NEMatrix& inData	// is input data matrix. Variables are in columns. Sets is in rows
+		);

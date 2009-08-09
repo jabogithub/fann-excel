@@ -400,3 +400,57 @@ EXCEL_END
 
 //////////////////////////
 
+namespace
+{
+XLRegistration::Arg
+fannRunArgs[]=
+{
+{ "netFile"," is the network definition ANN file "},
+{ "inData"," is input data matrix. Variables are in columns. Sets is in rows "}
+};
+  XLRegistration::XLFunctionRegistrationHelper
+registerfannRun("xlfannRun",
+"fannRun",
+" run input through the neural network, returning an array of outputs, The variables are incolumns (equal to # of neurons inoutput layer), sets are in rows (equal to # of rows of the input data) ",
+LibraryName,
+fannRunArgs,
+"RK"
+);
+}
+
+
+
+extern "C"
+{
+LPXLOPER EXCEL_EXPORT
+xlfannRun(
+LPXLOPER netFilea,
+LPXLARRAY inDataa)
+{
+EXCEL_BEGIN;
+
+	if (XlfExcel::Instance().IsCalledByFuncWiz())
+		return XlfOper(true);
+
+XlfOper netFileb(
+	(netFilea));
+std::string netFile(
+	netFileb.AsString("netFile"));
+
+NEMatrix inData(
+	GetMatrix(inDataa));
+
+NEMatrix result(
+	fannRun(
+		netFile,
+		inData)
+	);
+return XlfOper(result);
+EXCEL_END
+}
+}
+
+
+
+//////////////////////////
+

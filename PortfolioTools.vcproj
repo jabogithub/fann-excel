@@ -42,7 +42,7 @@
 				Name="VCCLCompilerTool"
 				Optimization="0"
 				AdditionalIncludeDirectories=".\XLW2p1\.;.\fann-2.1.0\src\include"
-				PreprocessorDefinitions="WIN32;_DEBUG;_WINDOWS;_USRDLL;FANN_DLL_EXPORTS;"
+				PreprocessorDefinitions="WIN32;_DEBUG;_WINDOWS;_USRDLL;FANN_DLL_EXPORTS;_CRT_SECURE_NO_DEPRECATE"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="3"
