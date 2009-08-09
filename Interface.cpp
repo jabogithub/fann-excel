@@ -114,6 +114,17 @@ fannTrainOnFile(const std::string& netFile			// is the ANN file
 	return mse;
 }
 
+// ---- CallBack --------
+static NEMatrix&	inDataGlobal = NEMatrix();	// Ugly solution: Static valrable to get data into the callback...
+static NEMatrix&	outDataGlobal = NEMatrix();
+static void __stdcall cbTrainOnData(unsigned int rowNo, unsigned int nIn, unsigned int nOut, fann_type* inRow, fann_type* outRow)
+{
+	for (unsigned int i = 0; i < nIn; ++i)
+		inRow[i] = (fann_type) inDataGlobal(rowNo,i);
+	for (unsigned int j = 0; j < nOut; ++j)
+		outRow[j] = (fann_type) outDataGlobal(rowNo, j);
+}
+
 double
 fannTrainOnData(const std::string& netFile	// is the ANN file
 				,	const NEMatrix& inData	// is input data matrix. Variables are in columns. Training sets in rows
@@ -122,17 +133,25 @@ fannTrainOnData(const std::string& netFile	// is the ANN file
 				,	DoubleOrNothing desiredError	// is desired error (MSE)
 				)
 {
-	const float dError =(float) desiredError.GetValueOrDefault(0.001);
-	const int epochsBetweenReports = (int)maxEpochs/5;
-
+	// create ANN from file
 	struct fann* ann = fann_create_from_file(netFile.c_str());
 	// Create train_data struct
 	unsigned int nOfRows = inData.rows();
 	unsigned int nOfInputs = inData.columns();
 	unsigned int nOfOutputs= outData.columns();
 
-	//! TODO: train directly using fann_train_epoch() which returns MSE
+	inDataGlobal = inData;
+	outDataGlobal = outData;
+	struct fann_train_data* data = fann_create_train_from_callback(nOfRows, nOfInputs, nOfOutputs, cbTrainOnData);
+
+	// Train the network
+	const float dError =(float) desiredError.GetValueOrDefault(0.001);
+	const int epochsBetweenReports = (int)maxEpochs/5;
+	fann_train_on_data(ann, data, maxEpochs, epochsBetweenReports, dError);	
 	double mse = fann_get_MSE(ann);
+
+	// Save and destroy
+	fann_save(ann, netFile.c_str());
 	fann_destroy(ann);
 	
 	return mse;
