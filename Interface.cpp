@@ -21,7 +21,7 @@ fannInqLibraryVersion()
 bool // create training file for FANN network
 fannCreateTrainingFile(const NEMatrix& inData // is input data matrix. Variables are in columns. Each training set in rows
 					,  const NEMatrix& outData // is output data matrix. Variables in columns. Training sets in rows
-					,  std::string trainFileName // is name of the output file
+					,  const std::string& trainFileName // is name of the output file
 					)
 {
 	if (inData.rows() != outData.rows())
@@ -58,7 +58,7 @@ fannCreateTrainingFile(const NEMatrix& inData // is input data matrix. Variables
 bool	// create a standard fully connected backpropagation neural network and save it into file. 
 fannCreateStandardArray(int nOfLayers			// is number of layers
 					,	const MyArray&	neurons	// vector with number of neurons in each layer (including input, hiddenand output layers)
-					,	std::string netFileName	// is the name of the created network file (including path)
+					,	const std::string& netFileName	// is the name of the created network file (including path)
 					)
 {
 	unsigned int* layers = new unsigned int[neurons.size()];
@@ -128,16 +128,10 @@ static void __stdcall cbTrainOnData(unsigned int rowNo, unsigned int nIn, unsign
 		outRow[j] = (fann_type) outDataGlobal(rowNo, j);
 }
 
-double
-fannTrainOnData(const std::string& netFile	// is the ANN file
-				,	const NEMatrix& inData	// is input data matrix. Variables are in columns. Training sets in rows
-				,	const NEMatrix& outData	// is output data matrix. Variables in columns. Training sets in rows
-				,	int maxEpochs					// is maximum number of epochs,
-				,	DoubleOrNothing desiredError	// is desired error (MSE)
-				)
-{
-	// create ANN from file
-	struct fann* ann = fann_create_from_file(netFile.c_str());
+// create fann_train_data struct
+struct fann_train_data*
+prepareTrainData(struct fann* ann, const NEMatrix& inData, const NEMatrix& outData)
+{	
 	// Check input/output layer consistency with data
 	unsigned int nOfRows = inData.rows();
 	unsigned int nOfInputs = inData.columns();
@@ -165,7 +159,22 @@ fannTrainOnData(const std::string& netFile	// is the ANN file
 	// Create train_data struct
 	inDataGlobal = inData;
 	outDataGlobal = outData;
-	struct fann_train_data* data = fann_create_train_from_callback(nOfRows, nOfInputs, nOfOutputs, cbTrainOnData);
+	struct fann_train_data* data = fann_create_train_from_callback(nOfRows, nOfInputs, nOfOutputs, cbTrainOnData); 
+	return data;
+}
+
+double
+fannTrainOnData(const std::string& netFile	// is the ANN file
+				,	const NEMatrix& inData	// is input data matrix. Variables are in columns. Training sets in rows
+				,	const NEMatrix& outData	// is output data matrix. Variables in columns. Training sets in rows
+				,	int maxEpochs					// is maximum number of epochs,
+				,	DoubleOrNothing desiredError	// is desired error (MSE)
+				)
+{
+	// create ANN from file
+	struct fann* ann = fann_create_from_file(netFile.c_str());
+	// create train data
+	struct fann_train_data* data = prepareTrainData(ann, inData, outData);
 
 	// Train the network
 	FILE* logFile = fopen(logFileName, "a");
@@ -173,11 +182,31 @@ fannTrainOnData(const std::string& netFile	// is the ANN file
 	const int epochsBetweenReports = (int)maxEpochs/5;
 	fann_train_on_data(ann, data, maxEpochs, epochsBetweenReports, dError, logFile);	
 	fclose(logFile);
+
+	fann_destroy_train(data);
 	double mse = fann_get_MSE(ann);
 
 	// Save and destroy
 	fann_save(ann, netFile.c_str());
 	fann_destroy(ann);
 	
+	return mse;
+}
+
+double	// test network on set of known in- and out-data withou modifying hte network. Return MSE
+fannTestOnData(const std::string& netFile	// is the network definition ANN file
+			   ,	const NEMatrix& inData	// is input data matrix. Variables are in columns. Training sets in rows
+			   ,	const NEMatrix& outData	// is output data matrix. Variables in columns. Training sets in rows
+				)
+{
+	// create ANN from file
+	struct fann* ann = fann_create_from_file(netFile.c_str());
+	// create train data
+	struct fann_train_data* data = prepareTrainData(ann, inData, outData);
+	// test + report MSE	
+	double mse = fann_test_data(ann, data);
+	// Clean-up
+	fann_destroy_train(data);
+	fann_destroy(ann);
 	return mse;
 }

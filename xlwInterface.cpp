@@ -269,7 +269,7 @@ namespace
 XLRegistration::Arg
 fannTrainOnDataArgs[]=
 {
-{ "netFile"," is the ANN file "},
+{ "netFile"," is the network defition ANN file "},
 { "inData"," is input data matrix. Variables are in columns. Training sets in rows "},
 { "outData"," is output data matrix. Variables in columns. Training sets in rows "},
 { "maxEpochs"," is maximum number of epochs, "},
@@ -278,7 +278,7 @@ fannTrainOnDataArgs[]=
   XLRegistration::XLFunctionRegistrationHelper
 registerfannTrainOnData("xlfannTrainOnData",
 "fannTrainOnData",
-"too lazy to comment this function ",
+" train network on in- and out-data. Return MSE ",
 LibraryName,
 fannTrainOnDataArgs,
 "RKKBP"
@@ -330,6 +330,66 @@ double result(
 		outData,
 		maxEpochs,
 		desiredError)
+	);
+return XlfOper(result);
+EXCEL_END
+}
+}
+
+
+
+//////////////////////////
+
+namespace
+{
+XLRegistration::Arg
+fannTestOnDataArgs[]=
+{
+{ "netFile"," is the network definition ANN file "},
+{ "inData"," is input data matrix. Variables are in columns. Training sets in rows "},
+{ "outData"," is output data matrix. Variables in columns. Training sets in rows "}
+};
+  XLRegistration::XLFunctionRegistrationHelper
+registerfannTestOnData("xlfannTestOnData",
+"fannTestOnData",
+" test network on set of known in- and out-data withou modifying hte network. Return MSE ",
+LibraryName,
+fannTestOnDataArgs,
+"RKK"
+);
+}
+
+
+
+extern "C"
+{
+LPXLOPER EXCEL_EXPORT
+xlfannTestOnData(
+LPXLOPER netFilea,
+LPXLARRAY inDataa,
+LPXLARRAY outDataa)
+{
+EXCEL_BEGIN;
+
+	if (XlfExcel::Instance().IsCalledByFuncWiz())
+		return XlfOper(true);
+
+XlfOper netFileb(
+	(netFilea));
+std::string netFile(
+	netFileb.AsString("netFile"));
+
+NEMatrix inData(
+	GetMatrix(inDataa));
+
+NEMatrix outData(
+	GetMatrix(outDataa));
+
+double result(
+	fannTestOnData(
+		netFile,
+		inData,
+		outData)
 	);
 return XlfOper(result);
 EXCEL_END
