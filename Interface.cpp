@@ -13,7 +13,7 @@ std::string
 fannInqLibraryVersion()
 { 
 	std::stringstream ss; 
-	ss << "FANNExcel 0.02; " << __TIMESTAMP__ << ", xlw: " << XLW_VERSION << ", fann: 2.1.0";
+	ss << "FANNExcel 0.03; " << __TIMESTAMP__ << ", xlw: " << XLW_VERSION << ", fann: 2.1.0";
 	return ss.str();
 }
 
