@@ -2,19 +2,40 @@
 #include <stdio.h>
 
 int
-main()
+main(int argc, char *argv[])
 {
-	int maxEpochs = 100;
-	const int epochsBetweenReports = (int)maxEpochs/5;
+	// Check input consistency
+	if (argc < 3)
+	{
+		printf("Usage: %s ANN_file training_file [maxEpochs [desiredError]]", argv[0]);
+		return -1;
+	}
+
+	// Read in input parameters
+	unsigned int maxEpochs = 100;
+	fann_type desiredError = (fann_type)1e-3;
+	const char* annFile = argv[1];
+	const char* trainFile = argv[2];
+	if (argc > 3)
+		maxEpochs = atoi(argv[2]);
+	if (argc > 4)
+		desiredError = (fann_type)atof(argv[3]);
+	const int epochsBetweenReports = maxEpochs / 10;
+	FILE* logFile = fopen("FANN-excel.log","a");
 	
 	// Load the network form the file
-	struct fann* ann = fann_create_from_file("TEST-deleteme.net");
+	fprintf(logFile, "Reading network file %s\n", annFile);
+	struct fann* ann = fann_create_from_file(annFile);
+	if (ann == NULL)
+		return -1;
 
 	// Train the network
-	FILE* logFile = fopen("FANN-excel.log","a");
-	fann_train_on_file(ann, "TEST-deleteme.dat", maxEpochs, epochsBetweenReports, 0.00000000001,logFile);
+	fprintf(logFile, "Training from file %s\n", trainFile);
+	fann_train_on_file(ann, trainFile, maxEpochs, epochsBetweenReports, desiredError,logFile);
+	
 	double mse = fann_get_MSE(ann);
-
+	fprintf(logFile, "MSE=%f", mse);
+	fclose(logFile);
 	fann_destroy(ann);
 	
 	return 0;

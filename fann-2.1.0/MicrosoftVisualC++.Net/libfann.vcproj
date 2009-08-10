@@ -43,7 +43,7 @@
 				Optimization="2"
 				InlineFunctionExpansion="1"
 				AdditionalIncludeDirectories="..\src\include"
-				PreprocessorDefinitions="WIN32;NDEBUG;_LIB;FANN_DLL_EXPORTS;"
+				PreprocessorDefinitions="WIN32;NDEBUG;_LIB;FANN_DLL_EXPORTS;_CRT_SECURE_NO_DEPRECATE"
 				StringPooling="true"
 				RuntimeLibrary="0"
 				EnableFunctionLevelLinking="true"

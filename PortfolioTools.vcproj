@@ -122,7 +122,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				AdditionalIncludeDirectories=".\XLW2p1\.;.\fann-2.1.0\src\include"
-				PreprocessorDefinitions="NDEBUG;FANN_DLL_EXPORTS;USE_WINDOWS_H"
+				PreprocessorDefinitions="NDEBUG;FANN_DLL_EXPORTS;USE_WINDOWS_H;_CRT_SECURE_NO_DEPRECATE"
 				RuntimeLibrary="0"
 				UsePrecompiledHeader="0"
 				WarningLevel="3"

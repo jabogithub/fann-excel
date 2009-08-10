@@ -73,6 +73,14 @@ fannCreateStandardArray(int nOfLayers			// is number of layers
 	return true;
 }
 
+struct fann* openAnnFile(const std::string& netFile)
+{
+	struct fann* ann = fann_create_from_file(netFile.c_str());
+	if (ann == NULL)
+		throw "Cannot open network file";
+	return ann;
+}
+
 double	// train network on input file
 fannTrainOnFile(const std::string& netFile			// is the ANN file
 				,	const std::string& trainFile	// is name of the input training data file
@@ -81,7 +89,7 @@ fannTrainOnFile(const std::string& netFile			// is the ANN file
 			  )
 {
 	// Load the network form the file
-	struct fann* ann = fann_create_from_file(netFile.c_str());
+	struct fann* ann = openAnnFile(netFile);
 
 	// Check consistency between thenetwork and the training file
 	std::ifstream in(trainFile.c_str());
@@ -172,7 +180,7 @@ fannTrainOnData(const std::string& netFile	// is the ANN file
 				)
 {
 	// create ANN from file
-	struct fann* ann = fann_create_from_file(netFile.c_str());
+	struct fann* ann = openAnnFile(netFile);
 	// create train data
 	struct fann_train_data* data = prepareTrainData(ann, inData, outData);
 
@@ -200,7 +208,7 @@ fannTestOnData(const std::string& netFile	// is the network definition ANN file
 				)
 {
 	// create ANN from file
-	struct fann* ann = fann_create_from_file(netFile.c_str());
+	struct fann* ann = openAnnFile(netFile);
 	// create train data
 	struct fann_train_data* data = prepareTrainData(ann, inData, outData);
 	// test + report MSE	
@@ -217,13 +225,14 @@ fannRun(const std::string& netFile	// is the network definition ANN file
 		)
 {
 	// create ANN from file
-	struct fann* ann = fann_create_from_file(netFile.c_str());
+	struct fann* ann = openAnnFile(netFile);
 	
-	// prepare varaibles
-	unsigned int nOfOutput = fann_get_num_output(ann);
+	// prepare variables
 	unsigned int nOfRows = inData.rows();
 	unsigned int nOfInput = inData.columns();
+	unsigned int nOfOutput = fann_get_num_output(ann);
 	NEMatrix outData(nOfRows, nOfOutput);
+
 	fann_type* input = new fann_type[nOfInput];
 
 	// run neural network fit
