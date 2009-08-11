@@ -35,6 +35,17 @@ fannTrainOnData(const std::string& netFile	// is the network defition ANN file
 				,	DoubleOrNothing desiredError	// is desired error (MSE)
 				);
 
+double // train on in/outTrainData and report MSE on test data.
+fannTrainOnDataAndTest(const std::string& netFile	// is the network defition ANN file
+				,	const NEMatrix& inTrainData		// is input train data matrix. Variables are in columns. Training sets in rows
+				,	const NEMatrix& outTrainData	// is output train data matrix. Variables in columns. Training sets in rows
+				,	int maxEpochs					// is maximum number of epochs,
+				,	const NEMatrix& inTestData		// is input test data matrix. 
+				,	const NEMatrix& outTestData		// is output test data matrix
+				,	DoubleOrNothing desiredError	// is desired error (MSE)
+				);
+
+
 double	// test network on set of known in- and out-data withou modifying hte network. Return MSE
 fannTestOnData(const std::string& netFile	// is the network definition ANN file
 			   ,	const NEMatrix& inData	// is input data matrix. Variables are in columns. Training sets in rows

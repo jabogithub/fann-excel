@@ -343,6 +343,94 @@ EXCEL_END
 namespace
 {
 XLRegistration::Arg
+fannTrainOnDataAndTestArgs[]=
+{
+{ "netFile"," is the network defition ANN file "},
+{ "inTrainData"," is input train data matrix. Variables are in columns. Training sets in rows "},
+{ "outTrainData"," is output train data matrix. Variables in columns. Training sets in rows "},
+{ "maxEpochs"," is maximum number of epochs, "},
+{ "inTestData"," is input test data matrix. "},
+{ "outTestData"," is output test data matrix "},
+{ "desiredError"," is desired error (MSE) "}
+};
+  XLRegistration::XLFunctionRegistrationHelper
+registerfannTrainOnDataAndTest("xlfannTrainOnDataAndTest",
+"fannTrainOnDataAndTest",
+" train on in/outTrainData and report MSE on test data. ",
+LibraryName,
+fannTrainOnDataAndTestArgs,
+"RKKBKKP"
+);
+}
+
+
+
+extern "C"
+{
+LPXLOPER EXCEL_EXPORT
+xlfannTrainOnDataAndTest(
+LPXLOPER netFilea,
+LPXLARRAY inTrainDataa,
+LPXLARRAY outTrainDataa,
+double maxEpochsa,
+LPXLARRAY inTestDataa,
+LPXLARRAY outTestDataa,
+LPXLOPER desiredErrora)
+{
+EXCEL_BEGIN;
+
+	if (XlfExcel::Instance().IsCalledByFuncWiz())
+		return XlfOper(true);
+
+XlfOper netFileb(
+	(netFilea));
+std::string netFile(
+	netFileb.AsString("netFile"));
+
+NEMatrix inTrainData(
+	GetMatrix(inTrainDataa));
+
+NEMatrix outTrainData(
+	GetMatrix(outTrainDataa));
+
+int maxEpochs(
+	static_cast<int>(maxEpochsa));
+
+NEMatrix inTestData(
+	GetMatrix(inTestDataa));
+
+NEMatrix outTestData(
+	GetMatrix(outTestDataa));
+
+XlfOper desiredErrorb(
+	(desiredErrora));
+CellMatrix desiredErrorc(
+	desiredErrorb.AsCellMatrix("desiredErrorc"));
+DoubleOrNothing desiredError(
+	DoubleOrNothing(desiredErrorc,"desiredError"));
+
+double result(
+	fannTrainOnDataAndTest(
+		netFile,
+		inTrainData,
+		outTrainData,
+		maxEpochs,
+		inTestData,
+		outTestData,
+		desiredError)
+	);
+return XlfOper(result);
+EXCEL_END
+}
+}
+
+
+
+//////////////////////////
+
+namespace
+{
+XLRegistration::Arg
 fannTestOnDataArgs[]=
 {
 { "netFile"," is the network definition ANN file "},
