@@ -542,3 +542,55 @@ EXCEL_END
 
 //////////////////////////
 
+namespace
+{
+XLRegistration::Arg
+fannSetBitFailLimitArgs[]=
+{
+{ "netFile"," is the network definition ANN file "},
+{ "bitFailLimit"," is the new bit fail limit "}
+};
+  XLRegistration::XLFunctionRegistrationHelper
+registerfannSetBitFailLimit("xlfannSetBitFailLimit",
+"fannSetBitFailLimit",
+" set new training bit-fail limit ",
+LibraryName,
+fannSetBitFailLimitArgs,
+"RB"
+);
+}
+
+
+
+extern "C"
+{
+LPXLOPER EXCEL_EXPORT
+xlfannSetBitFailLimit(
+LPXLOPER netFilea,
+double bitFailLimit)
+{
+EXCEL_BEGIN;
+
+	if (XlfExcel::Instance().IsCalledByFuncWiz())
+		return XlfOper(true);
+
+XlfOper netFileb(
+	(netFilea));
+std::string netFile(
+	netFileb.AsString("netFile"));
+
+
+bool result(
+	fannSetBitFailLimit(
+		netFile,
+		bitFailLimit)
+	);
+return XlfOper(result);
+EXCEL_END
+}
+}
+
+
+
+//////////////////////////
+

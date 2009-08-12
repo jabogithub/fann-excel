@@ -56,3 +56,8 @@ NEMatrix	// run input through the neural network, returning an array of outputs,
 fannRun(const std::string& netFile	// is the network definition ANN file
 		,	const NEMatrix& inData	// is input data matrix. Variables are in columns. Sets is in rows
 		);
+
+bool		// set new training bit-fail limit
+fannSetBitFailLimit(const std::string& netFile	// is the network definition ANN file
+					,	double	bitFailLimit	// is the new bit fail limit
+					);

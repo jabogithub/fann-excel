@@ -324,3 +324,18 @@ fannRun(const std::string& netFile	// is the network definition ANN file
 
 	return outData;
 }
+
+bool
+fannSetBitFailLimit(const std::string& netFile	// is the network definition ANN file
+					,	double	bitFailLimit	// is the new bit fail limit
+					)
+{
+	// create ANN from file
+	struct fann* ann = openAnnFile(netFile);
+	// Set the limit
+	fann_set_bit_fail_limit(ann, (fann_type)bitFailLimit);
+	// Clean-up
+	fann_save(ann, netFile.c_str());
+	fann_destroy(ann);
+	return true;
+}
