@@ -117,7 +117,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				AdditionalIncludeDirectories="..\fann-2.1.0\src\include"
-				PreprocessorDefinitions="WIN32;NDEBUG;_CONSOLE;FANN_DLL_EXPORTS;"
+				PreprocessorDefinitions="WIN32;NDEBUG;_CONSOLE;FANN_DLL_EXPORTS;_CRT_SECURE_NO_DEPRECATE"
 				RuntimeLibrary="0"
 				UsePrecompiledHeader="0"
 				WarningLevel="3"
@@ -173,6 +173,14 @@
 	<Files>
 		<File
 			RelativePath=".\standAlone.cpp"
+			>
+		</File>
+		<File
+			RelativePath=".\XGetopt.cpp"
+			>
+		</File>
+		<File
+			RelativePath=".\XGetopt.h"
 			>
 		</File>
 	</Files>
