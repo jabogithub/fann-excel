@@ -25,7 +25,6 @@
 #include "config.h"
 #include "fann.h"
 
-
 /*
  * Reads training data from a file. 
  */
@@ -286,8 +285,7 @@ FANN_EXTERNAL float FANN_API fann_train_epoch(struct fann *ann, struct fann_trai
 FANN_EXTERNAL void FANN_API fann_train_on_data(struct fann *ann, struct fann_train_data *data,
 											   unsigned int max_epochs,
 											   unsigned int epochs_between_reports,
-											   float desired_error,
-											   FILE* logFile)
+											   float desired_error)
 {
 	float error;
 	unsigned int i;
@@ -299,8 +297,7 @@ FANN_EXTERNAL void FANN_API fann_train_on_data(struct fann *ann, struct fann_tra
 
 	if(epochs_between_reports && ann->callback == NULL)
 	{
-		fprintf(logFile, "Max epochs %8d. Desired error: %.10f.\n", max_epochs, desired_error);
-		fflush(logFile);
+		printf("Max epochs %8d. Desired error: %.10f.\n", max_epochs, desired_error);
 	}
 
 	for(i = 1; i <= max_epochs; i++)
@@ -320,9 +317,8 @@ FANN_EXTERNAL void FANN_API fann_train_on_data(struct fann *ann, struct fann_tra
 		{
 			if(ann->callback == NULL)
 			{
-				fprintf(logFile, "Epochs     %8d. Current error: %.10f. Bit fail %d.\n", i, error,
+				printf("Epochs     %8d. Current error: %.10f. Bit fail %d.\n", i, error,
 					   ann->num_bit_fail);
-				fflush(logFile);
 			}
 			else if(((*ann->callback)(ann, data, max_epochs, epochs_between_reports, 
 									  desired_error, i)) == -1)
@@ -342,8 +338,7 @@ FANN_EXTERNAL void FANN_API fann_train_on_data(struct fann *ann, struct fann_tra
 FANN_EXTERNAL void FANN_API fann_train_on_file(struct fann *ann, const char *filename,
 											   unsigned int max_epochs,
 											   unsigned int epochs_between_reports,
-											   float desired_error,
-											   FILE* logFile)
+											   float desired_error)
 {
 	struct fann_train_data *data = fann_read_train_from_file(filename);
 
@@ -351,7 +346,7 @@ FANN_EXTERNAL void FANN_API fann_train_on_file(struct fann *ann, const char *fil
 	{
 		return;
 	}
-	fann_train_on_data(ann, data, max_epochs, epochs_between_reports, desired_error, logFile);
+	fann_train_on_data(ann, data, max_epochs, epochs_between_reports, desired_error);
 	fann_destroy_train(data);
 }
 
