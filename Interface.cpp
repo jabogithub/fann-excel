@@ -2,12 +2,11 @@
 
 #include <sstream>
 #include <fstream>
-#include <stdio.h>
 
 #include <fann.h>
 #include <xlw/xlw.h>
 
-static const char* logFileName = "FANN-excel.log";	// global logfile
+static std::ofstream logStreamG("FANN-excel.log", std::ios::app);	// Global log stream					
 static const unsigned int reportingFrequency = 10;	// number of reporting lines during one training
 static const double defaultError = 1e-3;			// default MSE
 
@@ -75,11 +74,24 @@ fannCreateStandardArray(int nOfLayers			// is number of layers
 	return true;
 }
 
+// TODO: print to global ostream  which will be directed to a file
+int FANN_API
+cbPrintStatusToLogStream(struct fann *ann, struct fann_train_data *train,
+					  unsigned int max_epochs, unsigned int epochs_between_reports,
+					  float desired_error, unsigned int epochs)
+{
+	logStreamG << "Epochs: " << epochs << ".\t" 
+		<< "MSE: " << fann_get_MSE(ann) << ".\t"
+		<<  "bit_fail: " << fann_get_bit_fail(ann) << std::endl << std::flush;
+	return 0;
+}
+
 struct fann* openAnnFile(const std::string& netFile)
 {
 	struct fann* ann = fann_create_from_file(netFile.c_str());
 	if (ann == NULL)
 		throw "Cannot open network file";
+	fann_set_callback(ann, cbPrintStatusToLogStream);
 	return ann;
 }
 
@@ -115,9 +127,7 @@ fannTrainOnFile(const std::string& netFile			// is the ANN file
 	// Train the network
 	const float dError =(float) desiredError.GetValueOrDefault(defaultError);
 	const int epochsBetweenReports = (int)maxEpochs / reportingFrequency;	
-	FILE* logFile = fopen(logFileName, "a");
-	fann_train_on_file(ann, trainFile.c_str(), maxEpochs, epochsBetweenReports, dError, logFile);
-	fclose(logFile);
+	fann_train_on_file(ann, trainFile.c_str(), maxEpochs, epochsBetweenReports, dError);
 	double mse = fann_get_MSE(ann);
 
 	// Save the trained network to the ANN file
@@ -187,11 +197,9 @@ fannTrainOnData(const std::string& netFile	// is the ANN file
 	struct fann_train_data* data = prepareTrainData(ann, inData, outData);
 
 	// Train the network
-	FILE* logFile = fopen(logFileName, "a");
 	const float dError =(float) desiredError.GetValueOrDefault(defaultError);
 	const int epochsBetweenReports = (int)maxEpochs / reportingFrequency;
-	fann_train_on_data(ann, data, maxEpochs, epochsBetweenReports, dError, logFile);	
-	fclose(logFile);
+	fann_train_on_data(ann, data, maxEpochs, epochsBetweenReports, dError);	
 
 	fann_destroy_train(data);
 	double mse = fann_get_MSE(ann);
@@ -242,13 +250,13 @@ fannTrainOnDataAndTest(const std::string& netFile	// is the network defition ANN
 	int epochsBetweenPeriods = maxEpochs / reportingFrequency;
 	std::string bestTrainNetFile = netFile + ".bestTrain.net";
 	std::string bestTestNetFile = netFile + ".bestTest.net";
-	FILE* logFile = fopen(logFileName,"a");
 	// Reset and recalculate MSE for Train and Test data
 	double mseTrain = 1e9;
 	double mseTrainMin = mseTrain;
 	double mseTestMin = 1e9;
-	fprintf(logFile, "--> fannTrainOnData(%s)\n",netFile.c_str());
-	fprintf(logFile, "Max epochs %8d. Desired error: %.10f.\n", maxEpochs, dError);
+	logStreamG << "--> fannTrainOnData(" << netFile << ")" << std::endl 
+		<< "Max epochs: " << maxEpochs << ".\t"
+		<< "Desired error: " << dError << std::endl << std::flush;
 
 	for (int i = 0; i < maxEpochs; ++i)
 	{
@@ -257,34 +265,34 @@ fannTrainOnDataAndTest(const std::string& netFile	// is the network defition ANN
 		if(i % epochsBetweenPeriods == 0)
 		{
 			double mseTest = fann_test_data(ann, testData);
-			fprintf(logFile, "Epochs     %8d. MSE(train)=%.10f. Bit fail %d. MSE(test)=%f\t", 
-				i, mseTrain, fann_get_bit_fail(ann), mseTest);
+			logStreamG << "Epochs: " << i << "\tMSE(train): " << mseTrain << "\t"
+				<< "Bit fail: " << fann_get_bit_fail(ann) << "\t"
+				<< "MSE(test): " <<  mseTest << "\t";
 			if (mseTrain < mseTrainMin)
 			{
 				mseTrainMin = mseTrain;
 				fann_save(ann, bestTrainNetFile.c_str());
-				fprintf(logFile, "saving bestTrain.net\t");
+				logStreamG << "saving bestTrain.net\t";
 			}
 			if (mseTest < mseTestMin)
 			{
 				mseTestMin = mseTest;
 				fann_save(ann, bestTestNetFile.c_str());
-				fprintf(logFile, "saving bestTest.net");
+				logStreamG << "saving bestTest.net";
 			}
-			fprintf(logFile, "\n");
-			fflush(logFile);
+			logStreamG << std::endl << std::flush;
 		}
 		if (mseTrain < dError)
 			break;
 	}
 		
 	// Save the best
-	fprintf(logFile, "*** Finished *** MSE(lastTrain)=%.10f, MSE(bestTrain)=%.10f, MSE(bestTest)=%.10f\n", 
-		mseTrain, mseTrainMin, mseTestMin);
+	logStreamG << "*** Finished *** MSE(lastTrain): " << mseTrain << ", "
+		<< "MSE(bestTrain): " << mseTrainMin << ", "
+		<< "MSE(bestTest): " << mseTestMin << std::endl << std::flush; 
 	fann_save(ann, netFile.c_str());
 
 	// clean-up
-	fclose(logFile);
 	fann_destroy_train(trainData);
 	fann_destroy_train(testData);
 	fann_destroy(ann);
