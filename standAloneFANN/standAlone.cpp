@@ -35,7 +35,7 @@ main(int argc, char *argv[])
 	char c;
 	std::string annFile, trainFile;
 	unsigned int maxEpochs = 100;
-	float desiredError = (fann_type)1e-10;
+	float dError = (fann_type)1e-10;
 	int reportFrequency = 10;
 	fann_train_enum alg = FANN_TRAIN_RPROP;
 	float learningRate = (float)0.7;
@@ -54,7 +54,7 @@ main(int argc, char *argv[])
 			maxEpochs = atoi(optarg);
 			break;
 		case 'e':
-			desiredError = (float)atof(optarg);
+			dError = (float)atof(optarg);
 			break;
 		case 'f':
 			reportFrequency = atoi(optarg);
@@ -103,11 +103,15 @@ main(int argc, char *argv[])
 
 	const int epochsBetweenReports = maxEpochs / reportFrequency;
 	
-	// Load the network form the file
+	// Load the network form the file 
 	std::cout << "Reading network file " << annFile << std::endl << std::flush;
 	struct fann* ann = fann_create_from_file(annFile.c_str());
 	if (ann == NULL)
+	{
+		std::cout << "Cannot open network file " << annFile << std::endl;
 		return -1;
+	}
+	// Set up parameters
 	fann_set_callback(ann, cbPrintStatusToStdOut);
 	fann_set_training_algorithm(ann, alg);
 	std::cout << "Network algorithm: " << fann_get_training_algorithm(ann) << std::endl;
@@ -117,14 +121,58 @@ main(int argc, char *argv[])
 	std::cout << "Bit Fail: " << fann_get_bit_fail_limit(ann) << std::endl;
 
 	// Train the network
-	std::cout << "Training from file " << trainFile << std::endl << std::flush;
-	fann_train_on_file(ann, trainFile.c_str(), maxEpochs, epochsBetweenReports, desiredError);
-	
-	double mse = fann_get_MSE(ann);
-	std::cout << "Finished MSE=" << mse << std::endl;
+	std::string bestTrainNetFile = annFile + ".bestTrain.net";
+	std::string bestBitNetFile = annFile + ".bestBit.net";
+	// Reset and recalculate MSE for Train and Test data
+	double mseTrain = 1e9;
+	double mseTrainMin = mseTrain;
+	int bitFailMin = 1e9;
 
-	// Save and clean-up
+	std::cout << "--> fannTrainOnData(" << annFile << ")" << std::endl 
+		<< "Max epochs: " << maxEpochs << ".\t"
+		<< "Desired error: " << dError << std::endl << std::flush;
+
+	struct fann_train_data* trainData = fann_read_train_from_file(trainFile.c_str());
+	if (trainData == NULL)
+	{
+		std::cout << "Cannot open training file " << trainFile << std::endl;
+		return -1;
+	}
+
+	for (unsigned int i = 0; i < maxEpochs; ++i)
+	{
+		mseTrain = fann_train_epoch(ann, trainData);
+		// Report to log file + save the best networks if necessary
+		if(i % epochsBetweenReports == 0)
+		{
+			int bitFail = fann_get_bit_fail(ann);
+			std::cout << "Epochs: " << i << "\tMSE(train): " << mseTrain << "\t"
+				<< "Bit fail: " << bitFail << "\t";
+			if (mseTrain < mseTrainMin)
+			{
+				mseTrainMin = mseTrain;
+				fann_save(ann, bestTrainNetFile.c_str());
+				std::cout << "saving bestTrain.net\t";
+			}
+			if (bitFail < bitFailMin)
+			{
+				bitFailMin = bitFail;
+				fann_save(ann, bestBitNetFile.c_str());
+				std::cout << "saving bestBit.net";
+			}
+			std::cout << std::endl << std::flush;
+		}
+		if (mseTrain < dError)
+			break;
+	}
+		
+	// Save the best
+	std::cout << "*** Finished *** MSE(lastTrain): " << mseTrain << ", "
+		<< "MSE(bestTrain): " << mseTrainMin << std::endl << std::flush; 
 	fann_save(ann, annFile.c_str());
+
+	// clean-up
+	fann_destroy_train(trainData);
 	fann_destroy(ann);
 	
 	return 0;
